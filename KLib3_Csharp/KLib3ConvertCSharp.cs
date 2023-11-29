@@ -18,12 +18,9 @@ namespace KLib3_Csharp
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr CreateApiClient();
 
-        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr DisposeApiClient(IntPtr _apiClientPtr);
-
         //양방향 통신 시작
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ApiClient_Open(IntPtr _apiClientPtr);
+        public static extern bool ApiClient_Open(IntPtr _apiClientPtr);
 
         //양방향 통신 끝
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -37,6 +34,35 @@ namespace KLib3_Csharp
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ApiClient_SendCommandByStr(IntPtr _apiClientPtr, IntPtr _commandWorkCodeStr, int _commandWorkCodeStrLength, IntPtr _commandData, int _commandLength);
 
+        //수신 지령 확인 및 가져오기
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_GetReceiveStackCommand(IntPtr _apiClientPtr, ref int _commandType,ref IntPtr _commandData, ref int _commandDataLength);
+
+        //특정 수신 지령 확인 및 가져오기
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_GetSearchReceiveStackCommand(IntPtr _apiClientPtr, int _commandCode, ref IntPtr _commandData, ref int _commandDataLength);
+
+        //특정 수신 지령 확인 및 가져오기
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_GetSearchReceiveStackCommandStr(IntPtr _apiClientPtr, IntPtr _commandCodeStr, int _commandCodeStrLength, ref IntPtr _commandData, ref int _commandDataLength);
+
+        //지령 리스트 업데이트
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_GetCommandList(IntPtr _apiClientPtr, ref IntPtr _resultCommandWorkListData, ref int _resultCommandWorkDataLength, ref IntPtr _resultCommandTypeListData, ref int _resultCommandTypeDataLength);
+
+        //설정된 시간만료 값 불러오기
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_GetTimeOut(IntPtr _apiClientPtr, ref int _connectTimeOut, ref int _sendTimeOut);
+
+        //시간만료 값 설정하기
+        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ApiClient_SetTimeOut(IntPtr _apiClientPtr, int _connectTimeOut, int _sendTimeOut);
+
+
+
+
+
+
         //비동기 수신 이벤트
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ApiClient_AsyncReceive(IntPtr _apiClientPtr, ApiCallbackDelegate _apiCallback);
@@ -46,13 +72,9 @@ namespace KLib3_Csharp
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ApiClient_SetInstance(IntPtr _apiClientPtr, IntPtr _ref);
 
-        //수신 지령 확인 및 가져오기
         [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ApiClient_GetReceiveStackCommand(IntPtr _apiClientPtr, ref int _commandType,ref IntPtr _commandData, ref int _commandDataLength);
+        public static extern IntPtr DisposeApiClient(IntPtr _apiClientPtr);
 
-        //지령 리스트 업데이트
-        [DllImport("KLib3.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ApiClient_GetCommandList(IntPtr _apiClientPtr, ref IntPtr _resultCommandWorkListData, ref int _resultCommandWorkDataLength, ref IntPtr _resultCommandTypeListData, ref int _resultCommandTypeDataLength);
 
         private IntPtr mApiClientPtr;
         public byte[] mData;
@@ -95,9 +117,10 @@ namespace KLib3_Csharp
         }
 
         //양방향 API 시작
-        public void Open()
+        public bool Open()
         {
-            ApiClient_Open(mApiClientPtr);
+            bool temp = ApiClient_Open(mApiClientPtr);
+            return temp;
         }
 
         //양방향 API 끝
@@ -139,10 +162,10 @@ namespace KLib3_Csharp
         public void GetStackReceiveCommand(out int _commandType, out string _commandData)
         {
             int mCommandType = 0;
-            byte[] mCommandData;
+            byte[] mCommandData = null;
             int mCommandDataLength = 0;
             IntPtr mCommandDataPtr = IntPtr.Zero;
-            _commandData = null;
+            _commandData = "";
 
             ApiClient_GetReceiveStackCommand(mApiClientPtr, ref mCommandType, ref mCommandDataPtr, ref mCommandDataLength);
             
@@ -150,9 +173,117 @@ namespace KLib3_Csharp
             {
                 mCommandData = new byte[mCommandDataLength];
                 Marshal.Copy(mCommandDataPtr, mCommandData, 0, mCommandDataLength);
-                _commandData = Encoding.UTF8.GetString(mCommandData);
             }
             _commandType = mCommandType;
+
+            if(mCommandData == null)
+            {
+                _commandType = - 1;
+                _commandData = "No receive data";
+                return;
+            }
+
+            if ((mCommandType & 0xF0FFFF) == 9 || (mCommandType & 0xF0FFFF) == 1048576)
+            {
+                foreach (var data in mCommandData)
+                {
+                    if (_commandData != "")
+                        _commandData += ",";
+                    _commandData += data.ToString();
+                }
+            }
+            else
+            {
+                _commandData = Encoding.UTF8.GetString(mCommandData);
+            }
+        }
+
+        public void GetSearchStackReceiveCommand(string _commandCodeStr,out string _commandData)
+        {
+            _commandData = "";
+            IntPtr commandCodeStr = Marshal.StringToHGlobalAnsi(_commandCodeStr);
+            int commandCodeStrLength = _commandCodeStr.Length;
+
+            IntPtr commandData = IntPtr.Zero;
+            int commandDataLength = 0;
+
+
+            ApiClient_GetSearchReceiveStackCommandStr(mApiClientPtr, commandCodeStr, commandCodeStrLength,ref commandData, ref commandDataLength);
+
+            byte[] arrCommandData = null;
+            if (commandDataLength > 0)
+            {
+                arrCommandData = new byte[commandDataLength];
+                Marshal.Copy(commandData, arrCommandData, 0, commandDataLength);
+            }
+            else
+            {
+                if(_commandCodeStr == "MatrixData")
+                {
+                    GetSearchStackReceiveCommand("RealtimeDataOn", out _commandData);
+                    return;
+                }
+
+                _commandData = "No receive data";
+                return;
+            }
+
+            if (_commandCodeStr == "MatrixData" || _commandCodeStr == "RealtimeDataOn")
+            {
+                foreach (var data in arrCommandData)
+                {
+                    if (_commandData != "")
+                        _commandData += ",";
+                    _commandData += data.ToString();
+                }
+            }
+            else
+            {
+                _commandData = Encoding.UTF8.GetString(arrCommandData);
+            }
+        }
+
+        public void GetSearchStackReceiveCommand(int _commandCode, out string _commandData)
+        {
+            _commandData = "";
+
+            IntPtr commandData = IntPtr.Zero;
+            int commandDataLength = 0;
+
+
+            ApiClient_GetSearchReceiveStackCommand(mApiClientPtr, _commandCode, ref commandData, ref commandDataLength);
+
+            byte[] arrCommandData = null;
+            if (commandDataLength > 0)
+            {
+                arrCommandData = new byte[commandDataLength];
+                Marshal.Copy(commandData, arrCommandData, 0, commandDataLength);
+            }
+            else
+            {
+                if ((_commandCode & 0xF0FFFF) == 1048576)
+                {
+                    GetSearchStackReceiveCommand("RealtimeDataOn", out _commandData);
+                    return;
+                }
+
+                _commandData = "No receive data";
+                return;
+            }
+
+            if ((_commandCode&0xF0FFFF) == 9 || (_commandCode & 0xF0FFFF) == 1048576)
+            {
+                foreach (var data in arrCommandData)
+                {
+                    if (_commandData != "")
+                        _commandData += ",";
+                    _commandData += data.ToString();
+                }
+            }
+            else
+            {
+                _commandData = Encoding.UTF8.GetString(arrCommandData);
+            }
         }
 
         //지령 리스트 업데이트
@@ -165,14 +296,31 @@ namespace KLib3_Csharp
             int commandTypeListStrLength = 0;
 
             ApiClient_GetCommandList(mApiClientPtr, ref commandWorkListPtr,ref commandWorkListStrLength, ref commandTypeListPtr, ref commandTypeListStrLength);
-            byte[] mCommandWorkListData = new byte[commandWorkListStrLength];
-            Marshal.Copy(commandWorkListPtr, mCommandWorkListData, 0, commandWorkListStrLength);
 
+            byte[] mCommandWorkListData = new byte[commandWorkListStrLength];
+
+            if (commandWorkListStrLength > 0)
+            {
+                Marshal.Copy(commandWorkListPtr, mCommandWorkListData, 0, commandWorkListStrLength);
+            }
             byte[] mCommandTypeListData = new byte[commandTypeListStrLength];
-            Marshal.Copy(commandTypeListPtr, mCommandTypeListData, 0, commandTypeListStrLength);
+            if (commandTypeListStrLength > 0)
+            {
+                Marshal.Copy(commandTypeListPtr, mCommandTypeListData, 0, commandTypeListStrLength);
+            }
 
             _commandWorkList = Encoding.UTF8.GetString(mCommandWorkListData);
             _commandTypeList = Encoding.UTF8.GetString(mCommandTypeListData);
+        }
+
+        public void SetTimeOut(int _connectTimeOut, int _sendTimeOut)
+        {
+            ApiClient_SetTimeOut(mApiClientPtr, _connectTimeOut, _sendTimeOut);
+        }
+
+        public void GetTimeOut(ref int _connectTimeOut,ref int _sendTimeOut)
+        {
+            ApiClient_GetTimeOut(mApiClientPtr,ref _connectTimeOut,ref _sendTimeOut);
         }
     }
 }
