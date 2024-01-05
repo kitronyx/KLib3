@@ -62,6 +62,15 @@ class CDllWrapper:
         
     def GetReceiveStackCommand(self):
         self.dll.ApiClient_GetReceiveStackCommand(self.dllWrapperPtr, ctypes.byref(self.stackCommandType), ctypes.byref(self.stackCommandData), ctypes.byref(self.stackCommandDataLength))
+        result = ""
+        if self.stackCommandType == 9 or self.stackCommandType == 1048576:
+            for i in range(self.stackCommandDataLength.value):
+                if result != "" :
+                    result += ", "
+                result += str(self.stackCommandData.value[i])
+        else:
+            print(self.stackCommandData.value)
+        return result
         
     def GetSearchReceiveStackCommand(self, _commandCode):
         self.dll.ApiClient_GetSearchReceiveStackCommand(self.dllWrapperPtr, _commandCode, ctypes.byref(self.stackCommandData), ctypes.byref(self.stackCommandDataLength))

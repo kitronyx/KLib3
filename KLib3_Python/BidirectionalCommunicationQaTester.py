@@ -125,11 +125,12 @@ class ClientApiTester:
                 self.memoScript = "memo=" + str(inputDataStr)
                 continue
             elif self.userInput == 29:
-                self.cDllWrapper.GetReceiveStackCommand();
+                result = ""
+                result = self.cDllWrapper.GetReceiveStackCommand();
                 print()
                 print("=================================================")
                 print("지령 코드: "+ str(self.cDllWrapper.stackCommandType.value))
-                print("수신 데이터: " + self.cDllWrapper.stackCommandData.value.decode())
+                print("수신 데이터: " + result)
                 print("=================================================")
                 print()
                 continue;
