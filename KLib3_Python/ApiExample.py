@@ -9,9 +9,13 @@ from ApiCppDllWrapper import CDllWrapper
 
 cDllWrappe = CDllWrapper()
 
-
-cDllWrappe.ApiOpen()
-cDllWrappe.ApiStart()
+while True:
+    if cDllWrappe.ApiOpen() == True:
+        break;
+        
+        
+time.sleep(1)      
+        
 cDllWrappe.GetCommandList()
 
 user_input = input("Press Enter to continue...")
