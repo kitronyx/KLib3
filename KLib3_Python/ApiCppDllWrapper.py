@@ -11,7 +11,7 @@ from ctypes import cdll
 class CDllWrapper:
     def __init__(self):
         
-        self.dll = cdll.LoadLibrary('KLib3.dll')
+        self.dll = cdll.LoadLibrary('.\KLib3.dll')
         
         # 생성자 초기화
         self.dll.CreateApiClient.restype = ctypes.c_void_p
