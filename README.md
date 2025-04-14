@@ -1,15 +1,15 @@
 # KLib3 Full API Reference and Quick Starter Guide
 
-> This document is intended for third-party developers who integrate ForceLAB2 with external systems.
+> This guide is intended for third-party developers integrating ForceLAB2 with external systems.
 
-Note:  
+ This API is provided as a DLL (`KLib3.dll`) that encapsulates TCP/IP-based bidirectional communication with ForceLAB2 **by wrapping it into a DLL structure**.  
+Developers can interact with ForceLAB2 easily by calling the exposed functions in the DLL without needing to implement low-level networking themselves.
+
 This guide assumes that you are using the official wrapper code provided for KLib3:
 
 - For C++, use the `MyDLLWrapper` class implementation.
 - For C#, use the `KLib3Csharp` class with `DllImport` bindings.
 - For Python, use the `CDllWrapper` class via `ctypes` provided in `ApiCppDllWrapper.py`.
-
-These wrapper classes are required to correctly access native functions in `KLib3.dll`.
 
 ---
 
@@ -145,6 +145,81 @@ api.SendCommand(4, data, data.Length);
 
 ---
 
+## `DeviceSensorInfo` Command Description
+
+This command allows you to retrieve information about all currently connected devices and sensors.
+
+- **Command String**: `DeviceSensorInfo`  
+- **Command Code**: `2097152`  
+- **Required Parameter**: Page number (e.g., 1, 2, 3...)
+
+---
+
+### Output Format
+
+The result is returned as a **single string** containing multiple device and sensor entries. The following delimiters are used:
+
+| Delimiter | Meaning |
+|-----------|---------|
+| `$`       | Separates multiple devices |
+| `|`       | Separates items within a device |
+| `#`       | Separates multiple sensors |
+| `=`       | Separates sensor number and model |
+| `-`       | Separates sensor data blocks |
+| `;`       | Separates sensor properties (row/col/position/etc.) |
+
+---
+
+### Device Info Format
+
+```
+DeviceName|ConnectionType|PortName_or_File|sensorN=Model-row;rows/col;cols/xpos;X/ypos;Y/sensitivity;value/cal;calibration_path#...
+```
+
+---
+
+### Example
+
+```
+Baikal-II|Serial|COM3|sensor1=SFC1900CX-row;48/col;48/xpos;0/ypos;0/sensitivity;1.2/cal;C:\...\testCal
+#sensor2=SFC3400CX-row;48/col;48/xpos;48/ypos;0/sensitivity;1.0/cal;C:\...\testCal2
+$Baikal-II|Wifi1VN|testWifi1vn|sensor1=SFC4800CX-row;48/col;48/xpos;0/ypos;48/sensitivity;1.2/cal;
+```
+
+---
+
+### Explanation of Example
+
+#### Device 1
+- Name: `Baikal-II`
+- Connection Type: `Serial`
+- Port: `COM3`
+- Sensors:
+  - **sensor1**:  
+    - Model: `SFC1900CX`  
+    - Position: (0, 0)  
+    - Size: 48×48  
+    - Sensitivity: 1.2  
+    - Calibration path provided
+  - **sensor2**:  
+    - Model: `SFC3400CX`  
+    - Position: (48, 0)  
+    - Sensitivity: 1.0  
+    - Calibration path provided
+
+#### Device 2
+- Name: `Baikal-II`
+- Connection Type: `Wifi 1:N`
+- File: `testWifi1vn`
+- Sensors:
+  - **sensor1**:  
+    - Model: `SFC4800CX`  
+    - Position: (0, 48)  
+    - Sensitivity: 1.2  
+    - No calibration info
+
+---
+
 ## Static vs Dynamic DLL Usage
 
 | Language | Static Load | Dynamic Load |
@@ -193,13 +268,14 @@ For inquiries, contact **https://www.kitronyx.com/support_request** or your Kitr
 
 > 이 문서는 ForceLAB2를 외부 시스템과 연동하려는 개발자를 위한 안내서입니다.
 
-본 문서는 다음과 같은 공식 래퍼 클래스를 사용하는 것을 전제로 합니다:
+ 본 API는 ForceLAB2와의 TCP/IP 양방향 통신을 DLL 형태로 구성하여 제공하며, `KLib3.dll`을 통해 동작합니다.
+개발자는 저수준 통신 로직을 직접 구현할 필요 없이, DLL에 정의된 함수 호출만으로 손쉽게 연결, 명령 송신, 수신 처리를 구현할 수 있습니다.
+
+ 본 문서는 다음과 같은 공식 래퍼 클래스를 사용하는 것을 전제로 합니다:
 
 - **C++**: `MyDLLWrapper` 클래스 사용
 - **C#**: `KLib3Csharp` 클래스 및 `[DllImport]` 인터페이스 사용
 - **Python**: `ApiCppDllWrapper.py`의 `CDllWrapper` 클래스 사용 (`ctypes` 기반)
-
-`KLib3.dll`의 네이티브 기능을 안전하게 사용하려면 위 래퍼 클래스가 필요합니다.
 
 ---
 
@@ -332,6 +408,81 @@ dllWrapper.SendCommand(4, data);
 string data = "page=1,savepath=C:\\your\path,memo=test";
 api.SendCommand(4, data, data.Length);
 ```
+
+---
+
+## 디바이스 센서 정보 명령 (`DeviceSensorInfo`) 설명명
+
+현재 연결된 디바이스 및 센서 정보를 확인하는 명령입니다.
+
+- **지령 문자열**: `DeviceSensorInfo`  
+- **지령 코드**: `2097152`  
+- **필요 인자**: Page 번호 (예: 1, 2, 3...)
+
+---
+
+### 출력 포맷
+
+출력 결과는 **여러 디바이스 및 센서 정보를 포함한 문자열**로 반환되며, 각 항목은 **아래 구분자**를 통해 구분됩니다:
+
+| 구분자 | 의미 |
+|--------|------|
+| `$`    | 디바이스 구분 |
+| `|`    | 디바이스 정보 내 항목 구분 |
+| `#`    | 센서 구분 |
+| `=`    | 센서 번호와 센서명 구분 |
+| `-`    | 센서 데이터 구분 |
+| `;`    | 센서 속성(행/열 등) 구분 |
+
+---
+
+### 디바이스 정보 형식
+
+```
+디바이스이름|연결방식|포트명 또는 knsf/kwsf 파일이름|sensorN=센서명-row;행개수/col;열개수/xpos;X위치/ypos;Y위치/sensitivity;민감도/cal;캘리브레이션경로#...
+```
+
+---
+
+### 예시
+
+```
+Baikal-II|Serial|COM3|sensor1=SFC1900CX-row;48/col;48/xpos;0/ypos;0/sensitivity;1.2/cal;C:\...\testCal
+#sensor2=SFC3400CX-row;48/col;48/xpos;48/ypos;0/sensitivity;1.0/cal;C:\...\testCal2
+$Baikal-II|Wifi1VN|testWifi1vn|sensor1=SFC4800CX-row;48/col;48/xpos;0/ypos;48/sensitivity;1.2/cal;
+```
+
+---
+
+### 예시 설명
+
+#### 디바이스 1
+- 이름: `Baikal-II`
+- 연결방식: `Serial`
+- 포트: `COM3`
+- 센서:
+  - **sensor1**:  
+    - 모델: `SFC1900CX`  
+    - 위치: (0, 0)  
+    - 크기: 48×48  
+    - 민감도: 1.2  
+    - 캘리브레이션 경로 있음
+  - **sensor2**:  
+    - 모델: `SFC3400CX`  
+    - 위치: (48, 0)  
+    - 민감도: 1.0  
+    - 캘리브레이션 경로 있음
+
+#### 디바이스 2
+- 이름: `Baikal-II`
+- 연결방식: `Wifi 1:N`
+- 파일명: `testWifi1vn`
+- 센서:
+  - **sensor1**:  
+    - 모델: `SFC4800CX`  
+    - 위치: (0, 48)  
+    - 민감도: 1.2  
+    - 캘리브레이션 정보 없음
 
 ---
 
