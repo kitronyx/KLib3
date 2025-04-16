@@ -252,7 +252,7 @@ Please contact **Kitronyx** to obtain a valid version of `KLib3.dll`.
 ## Documentation Links
 
 - [KLib Manual (Korean)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%ED%86%B5%EC%8B%A0%20%EB%A7%A4%EB%89%B4%EC%96%BC.pdf)
-- [KLib Command List & Examples (Korean)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%EC%A7%80%EB%A0%B9%20%EB%AA%A9%EB%A1%9D%20%EB%B0%8F%20%EC%98%88%EC%8B%9C%20v2.7.1%20Retail.pdf)
+- [KLib Command List & Examples (Korean)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%EB%AA%85%EB%A0%B9%EC%96%B4%20%EB%AA%A9%EB%A1%9D%20%EB%B0%8F%20%EC%98%88%EC%8B%9C%20v2.8.2.pdf)
 
 ---
 
@@ -517,7 +517,7 @@ $Baikal-II|Wifi1VN|testWifi1vn|sensor1=SFC4800CX-row;48/col;48/xpos;0/ypos;48/se
 ## 공식 문서 링크
 
 - [KLib 매뉴얼 (한글)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%ED%86%B5%EC%8B%A0%20%EB%A7%A4%EB%89%B4%EC%96%BC.pdf)
-- [KLib 명령어 목록 및 예시 (한글)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%EC%A7%80%EB%A0%B9%20%EB%AA%A9%EB%A1%9D%20%EB%B0%8F%20%EC%98%88%EC%8B%9C%20v2.7.1%20Retail.pdf)
+- [KLib 명령어 목록 및 예시 (한글)](https://github.com/kitronyx/KLib3/blob/main/doc/%EC%96%91%EB%B0%A9%ED%96%A5%20API%20%EB%AA%85%EB%A0%B9%EC%96%B4%20%EB%AA%A9%EB%A1%9D%20%EB%B0%8F%20%EC%98%88%EC%8B%9C%20v2.8.2.pdf)
 
 ---
 
