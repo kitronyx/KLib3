@@ -1,4 +1,4 @@
-# KLib3 Full API Reference and Quick Starter Guide
+# KLib3 Full API Reference and Quick start Guide
 
 > This guide is intended for third-party developers integrating ForceLAB2 with external systems.
 
@@ -27,7 +27,7 @@ python example.py
 ### C# / C++
 - Ensure project target platform is **x64**.
 - Place `KLib3.dll` in the output directory (`bin\x64\Debug` or equivalent).
-- Add interop class and start with the quick starter example below.
+- Add interop class and start with the quick start example below.
 
 ---
 
@@ -52,15 +52,15 @@ python example.py
 
 ---
 
-## Quick Starter Examples
+## Quick start Examples
 
 ### C++ (with MyDLLWrapper)
 ```cpp
 MyDLLWrapper api;
 api.LoadDLL("KLib3.dll");
 api.Open();
-char16_t data[] = u"page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, data);  // 4 = Snapshot
+char16_t options[] = u"page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options);  // 4 = Snapshot
 std::string result = api.GetReceiveStackCommand();
 api.Close();
 ```
@@ -69,8 +69,8 @@ api.Close();
 ```csharp
 KLib3Csharp api = new KLib3Csharp();
 api.Open();
-string sendData = "page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, sendData, sendData.Length);
+string options = "page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options, options.Length);
 api.GetSearchStackReceiveCommand("Snapshot", out string result);
 api.Close();
 ```
@@ -124,7 +124,7 @@ api.ApiClose()
 
 ## Command Code Usage
 
-You can send commands by either string name or numeric code.
+You can send commands using either predefined constants or numeric codes.
 
 ### Python Example
 ```python
@@ -133,14 +133,14 @@ api.SendCommandByCode(4, b"page=1,savepath=C:\\your\path,memo=test")
 
 ### C++
 ```cpp
-char16_t data[] = u"page=1,savepath=C:\\your\path,memo=test";
-dllWrapper.SendCommand(4, data);
+char16_t options[] = u"page=1,savepath=C:\\your\path,memo=test";
+dllWrapper.SendCommand(4, options);
 ```
 
 ### C#
 ```csharp
-string data = "page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, data, data.Length);
+string options = "page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options, options.Length);
 ```
 
 ---
@@ -264,7 +264,7 @@ For inquiries, contact **https://www.kitronyx.com/support_request** or your Kitr
 
 ---
 
-# KLib3 전체 API 레퍼런스 및 퀵 스타터 가이드
+# KLib3 전체 API 레퍼런스 및 퀵 스타트트 가이드
 
 > 이 문서는 ForceLAB2를 외부 시스템과 연동하려는 개발자를 위한 안내서입니다.
 
@@ -318,15 +318,15 @@ python example.py
 
 ---
 
-## 퀵 스타터 예제
+## 퀵 스타트 예제
 
 ### C++ (`MyDLLWrapper` 사용)
 ```cpp
 MyDLLWrapper api;
 api.LoadDLL("KLib3.dll");
 api.Open();
-char16_t data[] = u"page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, data);  // 4 = Snapshot
+char16_t options[] = u"page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options);  // 4 = Snapshot
 std::string result = api.GetReceiveStackCommand();
 api.Close();
 ```
@@ -335,8 +335,8 @@ api.Close();
 ```csharp
 KLib3Csharp api = new KLib3Csharp();
 api.Open();
-string sendData = "page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, sendData, sendData.Length);
+string options = "page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options, options.Length);
 api.GetSearchStackReceiveCommand("Snapshot", out string result);
 api.Close();
 ```
@@ -399,19 +399,19 @@ api.SendCommandByCode(4, b"page=1,savepath=C:\\your\path,memo=test")
 
 ### C++
 ```cpp
-char16_t data[] = u"page=1,savepath=C:\\your\path,memo=test";
-dllWrapper.SendCommand(4, data);
+char16_t options[] = u"page=1,savepath=C:\\your\path,memo=test";
+dllWrapper.SendCommand(4, options);
 ```
 
 ### C#
 ```csharp
-string data = "page=1,savepath=C:\\your\path,memo=test";
-api.SendCommand(4, data, data.Length);
+string options = "page=1,savepath=C:\\your\path,memo=test";
+api.SendCommand(4, options, options.Length);
 ```
 
 ---
 
-## 디바이스 센서 정보 명령 (`DeviceSensorInfo`) 설명명
+## 디바이스 센서 정보 명령 (`DeviceSensorInfo`) 설명
 
 현재 연결된 디바이스 및 센서 정보를 확인하는 명령입니다.
 

@@ -12,6 +12,8 @@ from ApiCppDllWrapper import CDllWrapper
 import ctypes
 from ctypes import cdll
 
+import subprocess
+import time
     
 class ClientApiTester:
     def __init__(self):
@@ -283,5 +285,16 @@ class ClientApiTester:
 
     
 if __name__ == "__main__":
+    # 프로그램 비동기 실행
+    process = subprocess.Popen(["C:\\Program Files (x86)\\Kitronyx\\ForceLAB2\\ForceLAB2.exe"])#ForceLAB2 기본 설치 경로
+    
     clientApiTester = ClientApiTester()
     clientApiTester.doWork()
+    
+    # 5초 대기
+    time.sleep(5)
+
+    # 종료
+    process.terminate()  # 윈도우에서는 강제종료에 가까움
+    process.wait()       # 종료 완료될 때까지 대기
+    

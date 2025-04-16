@@ -161,7 +161,10 @@ public:
          //FuncApiClient_SendCommandByStr(mApiClient,_commandStr,_commandStrLenght,ConvertUnicodeToCharPointer(ConvertToUnicode(_commandData)),_commandDataLength);
          int commandDataLength = 0;
          char* commandDataChar = ConvertChar16ToByte(_commandData, commandDataLength);
-
+         if (commandDataChar == nullptr)
+         {
+             return;
+         }
          FuncApiClient_SendCommandByStr(mApiClient, _commandStr, strlen(_commandStr), commandDataChar, commandDataLength);
      }
 
@@ -313,8 +316,21 @@ public:
      //wchar_t* 길이 계산
      size_t GetChar16Length(const char16_t* u16String) {
          const char16_t* p = u16String;
-         while (*p)
-             ++p;
+         try {
+             if (p == nullptr)
+             {
+                 return -1;
+             }
+
+             while (*p)
+             {
+                 ++p;
+             }
+         }
+         catch (exception ex)
+         {
+             cout << ex.what() << endl;
+         }
          return p - u16String;
      }
 
@@ -323,6 +339,10 @@ public:
          // 필요한 버퍼 크기 계산
          _length = sizeof(char16_t) * GetChar16Length(u16String);
 
+         if (_length <= 0)
+         {
+             return nullptr;
+         }
          // BYTE* 버퍼 할당
          char* byteArray = new char[_length];
 
@@ -344,18 +364,18 @@ void CommandTest1()
     std::cout << "Press enter for continue... ";
     std::getline(std::cin, input);
 
-    char16_t dataCommand1[] = u"page=1";
+    char16_t options1[] = u"page=1";
 
     //RTA 실행
-    dllWrapper.SendCommand("RtaStart", dataCommand1);
+    dllWrapper.SendCommand("RtaStart", options1);
 
     std::cout << "Press enter for continue... ";
     std::getline(std::cin, input);
 
-    char16_t dataCommand2[] = u"page=1,savepath=C:\\Users\\Kitronyx\\Desktop\\,memo=Aㅁ";
+    char16_t option2[] = u"page=1,savepath=C:\\Users\\Kitronyx\\Desktop\\,memo=Aㅁ";
 
     //RTA내에 스냅샷 실행
-    dllWrapper.SendCommand("Snapshot", dataCommand2);
+    dllWrapper.SendCommand("Snapshot", option2);
 
     std::cout << "Press enter for continue... ";
     std::getline(std::cin, input);
@@ -367,14 +387,14 @@ void CommandTest1()
     std::getline(std::cin, input);
 
     //실시간 RTA 프레임 데이터 송신 ON
-    dllWrapper.SendCommand("RealtimeDataOn", dataCommand1);
+    dllWrapper.SendCommand("RealtimeDataOn", options1);
 
     std::cout << "Press enter for continue... ";
     std::getline(std::cin, input);
 
     int commandCode=0;
-    string commandData = "";
-    int commandDataLength=0;
+    string options = "";
+    int optionsLength=0;
 
     while (true)
     {
@@ -384,9 +404,9 @@ void CommandTest1()
         cout << "commandCode: " << commandCode;
 
         //수신받은 지령 출력
-        if (commandDataLength > 0)
+        if (optionsLength > 0)
         {
-            cout << ", commandData:" << commandData << ", commandDataLength:" << commandDataLength;
+            cout << ", options:" << options << ", optionsLength:" << optionsLength;
         }
 
         cout << endl;
@@ -398,22 +418,22 @@ void CommandTest1()
             break;
     }
     //실시간 RTA 프레임 데이터 송신 OFF
-    dllWrapper.SendCommand("RealtimeDataOff", dataCommand1);
+    dllWrapper.SendCommand("RealtimeDataOff", options1);
 
     std::cout << "Press enter for continue... ";
     std::getline(std::cin, input);
 }
 
-int* sendCommandDataLength;
-char16_t* sendCommandData;
+int* sendOptionsLength;
+char16_t* sendOptionsData;
 
-u16string pageSendData = u"page=1";
-u16string savepathSendData = u"savepath=";
-u16string deviceIndexSendData = u"deviceIndex=";
-u16string sensorIndexSendData = u"sensorIndex=";
-u16string calPathSendData = u"path=";
-u16string sensitivityValueSendData = u"value=";
-u16string memoSendData;
+u16string pageOptions = u"page=1";
+u16string savepathOptions = u"savepath=";
+u16string deviceIndexOptions = u"deviceIndex=";
+u16string sensorIndexOptions = u"sensorIndex=";
+u16string calPathOptions = u"path=";
+u16string sensitivityValueOptions = u"value=";
+u16string memoOptions;
 
 string pageStr = "page=1";
 string savepathStr = "savepath=";
@@ -429,7 +449,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     // 1000 0000
     if ((_option & 0x80) > 0)
     {
-        result += pageSendData;
+        result += pageOptions;
     }
 
     // 0100 0000
@@ -437,7 +457,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += savepathSendData;
+        result += savepathOptions;
     }
 
     // 0010 0000
@@ -445,7 +465,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += deviceIndexSendData;
+        result += deviceIndexOptions;
     }
 
     // 0001 0000
@@ -453,7 +473,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += sensorIndexSendData;
+        result += sensorIndexOptions;
     }
 
     // 0000 1000
@@ -461,7 +481,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += calPathSendData;
+        result += calPathOptions;
     }
 
     // 0000 0100
@@ -469,7 +489,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += sensitivityValueSendData;
+        result += sensitivityValueOptions;
     }
 
     // 0000 0010
@@ -477,7 +497,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     {
         if (result != u"")
             result += u",";
-        result += memoSendData;
+        result += memoOptions;
     }
 
     // 0000 0001
@@ -496,7 +516,7 @@ void GetArgStr(char _option, char16_t*& _outputStr, int*& _length)
     //return utf8String;
 }
 
-string GetCommandStr(int _input, char16_t*& _commandSendData, int*& _length, bool*& _getReceive)
+string GetCommandStr(int _input, char16_t*& _commandOptions, int*& _length, bool*& _getReceive)
 {
     string result = "";
     *_getReceive = false;
@@ -508,20 +528,20 @@ string GetCommandStr(int _input, char16_t*& _commandSendData, int*& _length, boo
         break;
     case 1:
         result = "CalImport";
-        GetArgStr(0xB8, _commandSendData, _length);
+        GetArgStr(0xB8, _commandOptions, _length);
         break;
     case 2:
         result = "CalRelease";
-        GetArgStr(0xB0, _commandSendData, _length);
+        GetArgStr(0xB0, _commandOptions, _length);
         break;
     case 3:
         result = "DeviceSensorInfo";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         *_getReceive = true;
         break;
     case 4:
         result = "ConnectionInfo";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         *_getReceive = true;
         break;
     case 5:
@@ -539,56 +559,56 @@ string GetCommandStr(int _input, char16_t*& _commandSendData, int*& _length, boo
         break;
     case 9:
         result = "Sensitivity";
-        GetArgStr(0x34, _commandSendData, _length);
+        GetArgStr(0x34, _commandOptions, _length);
         break;
     case 10:
         result = "RtaStart";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 11:
         result = "RtaEnd";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 12:
         result = "LogStart";
-        GetArgStr(0xC2, _commandSendData, _length);
+        GetArgStr(0xC2, _commandOptions, _length);
         break;
     case 13:
         result = "LogEnd";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 14:
         result = "Snapshot";
-        GetArgStr(0xC2, _commandSendData, _length);
+        GetArgStr(0xC2, _commandOptions, _length);
         break;
     case 15:
         result = "Decision";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 16:
         result = "DecisionResultSave";
-        GetArgStr(0xC2, _commandSendData, _length);
+        GetArgStr(0xC2, _commandOptions, _length);
         break;
     case 17:
         result = "RealtimeDataOn";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 18:
         result = "RealtimeDataOff";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 19:
         result = "MatrixData";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         *_getReceive = true;
         break;
     case 20:
         result = "AccumulOn";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     case 21:
         result = "AccumulOff";
-        GetArgStr(0x80, _commandSendData, _length);
+        GetArgStr(0x80, _commandOptions, _length);
         break;
     default:
         break;
@@ -678,7 +698,7 @@ std::string u16stringToUtf8(const std::u16string& utf16String) {
     return utf8String;
 }
 
-void QATest()
+bool QATest()
 {
     std::string inputCommand;
     std::string inputValue;
@@ -736,12 +756,12 @@ void QATest()
         std::wstring widePath(desktopPath);
         CoTaskMemFree(desktopPath);
         std::string desktopPathString(widePath.begin(), widePath.end());
-        savepathSendData += convertToUTF16(desktopPathString);
+        savepathOptions += convertToUTF16(desktopPathString);
     }
 
     string errorStr = "";
     wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    sendCommandDataLength = new int;
+    sendOptionsLength = new int;
     bool *isGetReceiveData = new bool;
 
     int receiveCommandCode;
@@ -827,42 +847,42 @@ void QATest()
                 cout << "변경할 Page 입력: ";
                 std::getline(std::cin, inputValue);
                 pageStr = "page=" + inputValue;
-                pageSendData = u"page=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                pageOptions = u"page=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 23:
                 cout << "저장 경로 입력: ";
                 std::getline(std::cin, inputValue);
                 savepathStr = "savepath=" + inputValue;
-                savepathSendData = u"savepath=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                savepathOptions = u"savepath=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 24:
                 cout << "변경할 디바이스 번호 입력: ";
                 std::getline(std::cin, inputValue);
                 deviceIndexStr = "deviceindex=" + inputValue;
-                deviceIndexSendData = u"deviceindex=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                deviceIndexOptions = u"deviceindex=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 25:
                 cout << "변경할 센서 번호 입력: ";
                 std::getline(std::cin, inputValue);
                 sensorIndexStr = "sensorindex=" + inputValue;
-                sensorIndexSendData = u"sensorindex=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                sensorIndexOptions = u"sensorindex=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 26:
                 cout << "Cal 경로 입력: ";
                 std::getline(std::cin, inputValue);
                 calPathStr = "path=" + inputValue;
-                calPathSendData = u"path=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                calPathOptions = u"path=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 27:
                 cout << "변경할 감도 값 입력: ";
                 std::getline(std::cin, inputValue);
                 sensitivityValueStr = "value=" + inputValue;
-                sensitivityValueSendData = u"value=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                sensitivityValueOptions = u"value=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 continue;
             case 28:
                 cout << "메모 입력: ";
                 std::getline(std::cin, inputValue);
-                memoSendData = u"memo=" + convertToUTF16(multibyte_to_utf8(inputValue));
+                memoOptions = u"memo=" + convertToUTF16(multibyte_to_utf8(inputValue));
                 memoStr = "memo=" + inputValue;
                 continue;
             case 29:
@@ -897,7 +917,7 @@ void QATest()
             case 31:
                 cout << "수신 데이터 내 검색 할 지령 번호 입력: ";
                 std::getline(std::cin, inputValue);
-                sendCommand = GetCommandStr(stoi(inputValue), sendCommandData, sendCommandDataLength, isGetReceiveData);
+                sendCommand = GetCommandStr(stoi(inputValue), sendOptionsData, sendOptionsLength, isGetReceiveData);
                 resultData = dllWrapper.GetSearchReceiveStackCommandStr(sendCommand);
                 cout << endl;
                 cout << "수신 데이터: " << resultData << endl;
@@ -922,21 +942,85 @@ void QATest()
             continue;
         }
 
-        sendCommand = GetCommandStr(command, sendCommandData,sendCommandDataLength,isGetReceiveData);
+        sendCommand = GetCommandStr(command, sendOptionsData,sendOptionsLength,isGetReceiveData);
 
-        dllWrapper.SendCommand(sendCommand.c_str(), sendCommandData);
+        dllWrapper.SendCommand(sendCommand.c_str(), sendOptionsData);
         //dllWrapper.SendCommand("야호", sendCommandData);
 
         if (sendCommand == "exit")
             break;
     }
-    delete(sendCommandDataLength);
-    delete[](sendCommandData);
+    delete(sendOptionsLength);
+    delete[](sendOptionsData);
 
     delete(isGetReceiveData);
+
+    return true;
+}
+
+//외부 프로그램 실행
+bool LaunchExternalProcess(const std::wstring& commandLine, PROCESS_INFORMATION& processInfo) {
+    STARTUPINFOW startupInfo = { 0 };
+    startupInfo.cb = sizeof(startupInfo);
+
+    // 문자열을 복사하여 수정 가능하도록 함
+    LPWSTR cmdLine = _wcsdup(commandLine.c_str());
+
+    BOOL success = CreateProcessW(
+        NULL,           // 애플리케이션 이름 (NULL이면 commandLine에서 추출)
+        cmdLine,        // 커맨드 라인
+        NULL,           // 프로세스 보안 속성
+        NULL,           // 스레드 보안 속성
+        FALSE,          // 핸들 상속 여부
+        CREATE_NEW_CONSOLE, // 새 콘솔 창 열기
+        NULL,           // 환경 변수
+        NULL,           // 현재 디렉토리
+        &startupInfo,   // STARTUPINFO 구조체
+        &processInfo    // PROCESS_INFORMATION 구조체
+    );
+
+    free(cmdLine); // strdup 해제
+
+    return success;
+}
+
+// 프로세스 종료 함수
+bool TerminateExternalProcess(const PROCESS_INFORMATION& processInfo) {
+    DWORD exitCode;
+    if (GetExitCodeProcess(processInfo.hProcess, &exitCode)) {
+        if (exitCode == STILL_ACTIVE) {
+            std::wcout << L"프로세스가 실행 중입니다. 종료 시도 중..." << std::endl;
+
+            // 강제 종료
+            if (TerminateProcess(processInfo.hProcess, 1)) {
+                std::wcout << L"프로세스를 종료했습니다." << std::endl;
+                return true;
+            }
+            else {
+                std::wcerr << L"프로세스 종료 실패!" << std::endl;
+                return false;
+            }
+        }
+        else {
+            std::wcout << L"프로세스는 이미 종료됨. 종료 코드: " << exitCode << std::endl;
+        }
+    }
+    return false;
 }
 
 int main() {
+    PROCESS_INFORMATION pi;
+    // wchar_t 기반 문자열 리터럴
+    std::wstring cmd = L"C:\\Program Files (x86)\\Kitronyx\\ForceLAB2\\ForceLAB2.exe";//ForceLAB2 기본 설치 경로
+
+    //ForceLAB2 기본 설치 경로에 있는 프로그램 실행
+    if (LaunchExternalProcess(cmd, pi)) {
+        std::cout << "프로세스 실행됨. PID: " << pi.dwProcessId << std::endl;
+    }
+    else {
+        std::cerr << "실행 실패" << std::endl;
+    }
+
     while (true)
     {
         if (!dllWrapper.LoadDLL("KLib3.dll")) {
@@ -949,7 +1033,26 @@ int main() {
         dllWrapper.GetCommandList(); // 지령 리스트 업데이트
 
         //CommandTest1();
-        QATest();
+        if (QATest())
+        {
+            break;
+        }
     }
+
+    Sleep(1000);
+
+    // 종료 시도
+    TerminateExternalProcess(pi);
+
+    // 원할 때 종료 코드 확인
+    DWORD exitCode;
+    if (GetExitCodeProcess(pi.hProcess, &exitCode) && exitCode == STILL_ACTIVE) {
+        std::cout << "아직 실행 중입니다." << std::endl;
+    }
+
+    // 리소스 해제
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    
     return 0;
 }

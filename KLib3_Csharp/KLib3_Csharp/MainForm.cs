@@ -10,22 +10,23 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Diagnostics;
+using System.IO;
 
 namespace KLib3_Csharp
 {
-    public enum SendDataEnum { Page,SavePath,DeviceIndex,SensorIndex,Sensitivity,CalPath,Memo }
+    public enum SendOptionsEnum { Page,SavePath,DeviceIndex,SensorIndex,Sensitivity,CalPath,Memo }
 
     public struct BidirectionalApiCommand
     {
         public int mCommandCode;
-        public List<SendDataEnum> mSendDatas;
+        public List<SendOptionsEnum> mSendOptions;
         public bool mShowData;
 
-        public BidirectionalApiCommand(int _commandCode, List<SendDataEnum> _sendDatas, bool _showData)
+        public BidirectionalApiCommand(int _commandCode, List<SendOptionsEnum> _sendDatas, bool _showData)
         {
             mCommandCode = _commandCode;
-            mSendDatas = _sendDatas;
+            mSendOptions = _sendDatas;
             mShowData = _showData;
         }
     }
@@ -41,6 +42,8 @@ namespace KLib3_Csharp
         Dictionary<string, int> mCommandWorkList;
         Dictionary<string, int> mCommandTypeList;
 
+        Process mForceLAB2 = new Process();
+
         public MainForm()
         {
             InitializeComponent();
@@ -54,27 +57,27 @@ namespace KLib3_Csharp
 
         private void SetDicCommandList()
         {
-            mDicCommandList.Add("캘리브레이션 불러오기", new Tuple<string, BidirectionalApiCommand>("CalImport", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page, SendDataEnum.DeviceIndex, SendDataEnum.SensorIndex, SendDataEnum.CalPath },false)));
-            mDicCommandList.Add("캘리브레이션 제거하기", new Tuple<string, BidirectionalApiCommand>("CalRelease", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page, SendDataEnum.DeviceIndex, SendDataEnum.SensorIndex }, false)));
-            mDicCommandList.Add("디바이스 센서 정보", new Tuple<string, BidirectionalApiCommand>("DeviceSensorInfo", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },true)));
-            mDicCommandList.Add("디바이스 연결 정보", new Tuple<string, BidirectionalApiCommand>("ConnectionInfo", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page }, true)));
-            mDicCommandList.Add("ForceLAB2 버전", new Tuple<string, BidirectionalApiCommand>("Version", new BidirectionalApiCommand(0, new List<SendDataEnum> { }, true)));
-            mDicCommandList.Add("지령 업데이트",  new Tuple<string, BidirectionalApiCommand>("Update", new BidirectionalApiCommand(0, new List<SendDataEnum> { }, false)));
-            mDicCommandList.Add("긴급 정지",  new Tuple<string, BidirectionalApiCommand>("EmergencyStop", new BidirectionalApiCommand(0, new List<SendDataEnum> {  }, false)));
-            mDicCommandList.Add("일시 정지",  new Tuple<string, BidirectionalApiCommand>("Pause", new BidirectionalApiCommand(0, new List<SendDataEnum> {  }, false)));
-            mDicCommandList.Add("감도 조절",  new Tuple<string, BidirectionalApiCommand>("Sensitivity", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.DeviceIndex, SendDataEnum.SensorIndex, SendDataEnum.Sensitivity }, false)));
-            mDicCommandList.Add("RTA 실행",  new Tuple<string, BidirectionalApiCommand>("RtaStart", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },false)));
-            mDicCommandList.Add("RTA 종료",  new Tuple<string, BidirectionalApiCommand>("RtaEnd", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },false)));
-            mDicCommandList.Add("로그 시작하기",  new Tuple<string, BidirectionalApiCommand>("LogStart", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page, SendDataEnum.SavePath, SendDataEnum.Memo }, false)));
-            mDicCommandList.Add("로그 끝내기",  new Tuple<string, BidirectionalApiCommand>("LogEnd", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },false)));
-            mDicCommandList.Add("스냅샷",  new Tuple<string, BidirectionalApiCommand>("Snapshot", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page, SendDataEnum.SavePath, SendDataEnum.Memo }, false)));
-            mDicCommandList.Add("양불 판정",  new Tuple<string, BidirectionalApiCommand>("Decision", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page }, true)));
-            mDicCommandList.Add("양불 판정 저장",  new Tuple<string, BidirectionalApiCommand>("DecisionResultSave", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page, SendDataEnum.SavePath, SendDataEnum.Memo }, true)));
-            mDicCommandList.Add("실시간 데이터 전송 켜기",  new Tuple<string, BidirectionalApiCommand>("RealtimeDataOn", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },true)));
-            mDicCommandList.Add("실시간 데이터 전송 끄기",  new Tuple<string, BidirectionalApiCommand>("RealtimeDataOff", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page }, false)));
-            mDicCommandList.Add("1개 프레임 데이터 받기",  new Tuple<string, BidirectionalApiCommand>("MatrixData", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page }, true)));
-            mDicCommandList.Add("누적모드 ON",  new Tuple<string, BidirectionalApiCommand>("AccumulOn", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page }, false)));
-            mDicCommandList.Add("누적모드 OFF",  new Tuple<string, BidirectionalApiCommand>("AccumulOff", new BidirectionalApiCommand(0, new List<SendDataEnum> { SendDataEnum.Page },false)));
+            mDicCommandList.Add("캘리브레이션 불러오기", new Tuple<string, BidirectionalApiCommand>("CalImport", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page, SendOptionsEnum.DeviceIndex, SendOptionsEnum.SensorIndex, SendOptionsEnum.CalPath },false)));
+            mDicCommandList.Add("캘리브레이션 제거하기", new Tuple<string, BidirectionalApiCommand>("CalRelease", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page, SendOptionsEnum.DeviceIndex, SendOptionsEnum.SensorIndex }, false)));
+            mDicCommandList.Add("디바이스 센서 정보", new Tuple<string, BidirectionalApiCommand>("DeviceSensorInfo", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },true)));
+            mDicCommandList.Add("디바이스 연결 정보", new Tuple<string, BidirectionalApiCommand>("ConnectionInfo", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page }, true)));
+            mDicCommandList.Add("ForceLAB2 버전", new Tuple<string, BidirectionalApiCommand>("Version", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { }, true)));
+            mDicCommandList.Add("지령 업데이트",  new Tuple<string, BidirectionalApiCommand>("Update", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { }, false)));
+            mDicCommandList.Add("긴급 정지",  new Tuple<string, BidirectionalApiCommand>("EmergencyStop", new BidirectionalApiCommand(0, new List<SendOptionsEnum> {  }, false)));
+            mDicCommandList.Add("일시 정지",  new Tuple<string, BidirectionalApiCommand>("Pause", new BidirectionalApiCommand(0, new List<SendOptionsEnum> {  }, false)));
+            mDicCommandList.Add("감도 조절",  new Tuple<string, BidirectionalApiCommand>("Sensitivity", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.DeviceIndex, SendOptionsEnum.SensorIndex, SendOptionsEnum.Sensitivity }, false)));
+            mDicCommandList.Add("RTA 실행",  new Tuple<string, BidirectionalApiCommand>("RtaStart", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },false)));
+            mDicCommandList.Add("RTA 종료",  new Tuple<string, BidirectionalApiCommand>("RtaEnd", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },false)));
+            mDicCommandList.Add("로그 시작하기",  new Tuple<string, BidirectionalApiCommand>("LogStart", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page, SendOptionsEnum.SavePath, SendOptionsEnum.Memo }, false)));
+            mDicCommandList.Add("로그 끝내기",  new Tuple<string, BidirectionalApiCommand>("LogEnd", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },false)));
+            mDicCommandList.Add("스냅샷",  new Tuple<string, BidirectionalApiCommand>("Snapshot", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page, SendOptionsEnum.SavePath, SendOptionsEnum.Memo }, false)));
+            mDicCommandList.Add("양불 판정",  new Tuple<string, BidirectionalApiCommand>("Decision", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page }, true)));
+            mDicCommandList.Add("양불 판정 저장",  new Tuple<string, BidirectionalApiCommand>("DecisionResultSave", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page, SendOptionsEnum.SavePath, SendOptionsEnum.Memo }, true)));
+            mDicCommandList.Add("실시간 데이터 전송 켜기",  new Tuple<string, BidirectionalApiCommand>("RealtimeDataOn", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },true)));
+            mDicCommandList.Add("실시간 데이터 전송 끄기",  new Tuple<string, BidirectionalApiCommand>("RealtimeDataOff", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page }, false)));
+            mDicCommandList.Add("1개 프레임 데이터 받기",  new Tuple<string, BidirectionalApiCommand>("MatrixData", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page }, true)));
+            mDicCommandList.Add("누적모드 ON",  new Tuple<string, BidirectionalApiCommand>("AccumulOn", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page }, false)));
+            mDicCommandList.Add("누적모드 OFF",  new Tuple<string, BidirectionalApiCommand>("AccumulOff", new BidirectionalApiCommand(0, new List<SendOptionsEnum> { SendOptionsEnum.Page },false)));
 
             /*
 22.page 변경
@@ -165,7 +168,7 @@ namespace KLib3_Csharp
 
             foreach (var commandStr in mDicCommandList)
             {
-                temp.Add(commandStr.Key, new Tuple<string, BidirectionalApiCommand>(commandStr.Value.Item1, new BidirectionalApiCommand(mCommandWorkList[commandStr.Value.Item1], commandStr.Value.Item2.mSendDatas, commandStr.Value.Item2.mShowData)));
+                temp.Add(commandStr.Key, new Tuple<string, BidirectionalApiCommand>(commandStr.Value.Item1, new BidirectionalApiCommand(mCommandWorkList[commandStr.Value.Item1], commandStr.Value.Item2.mSendOptions, commandStr.Value.Item2.mShowData)));
                 comboBoxCommandList.Items.Add(commandStr.Key);
             }
 
@@ -206,7 +209,7 @@ namespace KLib3_Csharp
         private void buttonSend_Click(object sender, EventArgs e)
         {
             string command = mDicCommandList[comboBoxCommandList.Text].Item1;
-            string sendData = "";
+            string options = "";
 
             /*
             //각 지령에 필요한 내용 기입
@@ -231,10 +234,10 @@ namespace KLib3_Csharp
                 sendData = "page=1";
             }*/
 
-            sendData = GetSendData(mDicCommandList[comboBoxCommandList.Text].Item2.mSendDatas);
+            options = GetSendOptionsData(mDicCommandList[comboBoxCommandList.Text].Item2.mSendOptions);
 
             //지령 송신
-            apiClient.SendCommand(command,sendData,sendData.Count());
+            apiClient.SendCommand(command,options,options.Count());
 
 
             if(mDicCommandList[comboBoxCommandList.Text].Item2.mShowData)
@@ -247,37 +250,37 @@ namespace KLib3_Csharp
             //apiClient.SendCommand("얗호", sendData, sendData.Count());
         }
 
-        private string GetSendData(List<SendDataEnum> _sendDatas)
+        private string GetSendOptionsData(List<SendOptionsEnum> _options)
         {
             string result = @"";
 
-            foreach(var sendData in _sendDatas)
+            foreach(var option in _options)
             {
                 if(result != "")
                 {
                     result += ",";
                 }
-                switch( sendData )
+                switch( option )
                 {
-                    case SendDataEnum.Page:
+                    case SendOptionsEnum.Page:
                         result += "page=" + textBoxPage.Text;
                         break;
-                    case SendDataEnum.SavePath:
+                    case SendOptionsEnum.SavePath:
                         result += "savepath=" + textBoxSavePath.Text;
                         break;
-                    case SendDataEnum.DeviceIndex:
+                    case SendOptionsEnum.DeviceIndex:
                         result += "deviceindex=" + textBoxDeviceIndex.Text;
                         break;
-                    case SendDataEnum.SensorIndex:
+                    case SendOptionsEnum.SensorIndex:
                         result += "sensorindex=" + textBoxSensorIndex.Text;
                         break;
-                    case SendDataEnum.CalPath:
+                    case SendOptionsEnum.CalPath:
                         result += "path=" + textBoxCalPath.Text;
                         break;
-                    case SendDataEnum.Sensitivity:
+                    case SendOptionsEnum.Sensitivity:
                         result += "value=" + textBoxSensitivityValue.Text;
                         break;
-                    case SendDataEnum.Memo:
+                    case SendOptionsEnum.Memo:
                         result += "memo=" + textBoxMemo.Text;
                         break;
                     default:
@@ -342,6 +345,33 @@ namespace KLib3_Csharp
             apiClient.GetStackReceiveCommand(out int commandCode, out string message);
             
                 textBox1.Text += "CommandCode: " + commandCode.ToString() + ", Receive Data: " + message + "\r\n";
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            //기본 저장 경로의 ForceLAB2 실행
+            mForceLAB2.StartInfo.FileName = "C:\\Program Files (x86)\\Kitronyx\\ForceLAB2\\ForceLAB2.exe";//경로는 저장되어 있는 경로로 필요 시 수정
+            mForceLAB2.EnableRaisingEvents = true;
+
+            if (File.Exists(mForceLAB2.StartInfo.FileName))
+            {
+                mForceLAB2.Start();
+            }
+            else
+            {
+                mForceLAB2 = null;
+            }
+
+            this.FormClosing += FormClosingFunc;
+        }
+
+        private void FormClosingFunc(object sender, EventArgs e)
+        {
+            //ForceLAB2 종료
+            if (mForceLAB2 != null && !mForceLAB2.HasExited)
+            {
+                mForceLAB2.Kill();
+            }
         }
     }
 }
