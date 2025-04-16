@@ -42,6 +42,17 @@ python example.py
 
 ---
 
+### C++ Runtime Installation
+
+To run any application using `KLib3.dll`, you must install the 64-bit version of the Visual C++ Runtime:
+
+- **Download (Official)**: [https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+- **Direct Link**: [https://aka.ms/vs/17/release/vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+
+After downloading, run the installer and follow the instructions.
+
+---
+
 ## Language Support
 
 | Language |
@@ -305,6 +316,17 @@ python example.py
 | 개발 도구 | Visual Studio 2022 (MSVC v143, Windows SDK 10.0+) / Python 3.11.7 |
 | 프레임워크 | .NET Framework 4.8.1 (C#용) |
 | 필수 DLL | `KLib3.dll` (64비트 전용 — 반드시 x64로 빌드해야 함) |
+
+---
+
+### C++ 런타임 설치 방법
+
+`KLib3.dll`을 사용하는 모든 애플리케이션은 64비트 버전의 Visual C++ 런타임이 설치되어 있어야 합니다.
+
+- **공식 다운로드 페이지**: [https://learn.microsoft.com/ko-kr/cpp/windows/latest-supported-vc-redist](https://learn.microsoft.com/ko-kr/cpp/windows/latest-supported-vc-redist)
+- **직접 다운로드 링크 (x64)**: [https://aka.ms/vs/17/release/vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+
+다운로드한 설치 파일을 실행한 후 안내에 따라 설치를 진행하세요.
 
 ---
 
